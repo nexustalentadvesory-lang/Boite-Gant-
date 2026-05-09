@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // DENY ALL BY DEFAULT
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Vehicle Rules
+    match /vehicles/{vehicleId} {
+      function canAccessVehicle() {
+        let path = /databases/$(database)/documents/vehicles/$(vehicleId);
+        return isSignedIn() && exists(path) && (
+          get(path).data.ownerId == request.auth.uid ||
+          (get(path).data.keys().hasAll(['collaborators']) && request.auth.uid in get(path).data.collaborators)
+        );
+      }
+
+      function isValidVehicle(data) {
+        return data.keys().hasAll(['id', 'make', 'model', 'year', 'mileage', 'ownerId']) &&
+               data.id is string && data.make is string &&
+               data.model is string && data.year is string &&
+               data.mileage is string && data.ownerId is string &&
+               data.ownerId == request.auth.uid;
+      }
+
+      allow get: if isSignedIn() && (
+        existing().ownerId == request.auth.uid || 
+        (existing().keys().hasAll(['collaborators']) && request.auth.uid in existing().collaborators)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid || 
+        (resource.data.keys().hasAll(['collaborators']) && resource.data.collaborators.hasAny([request.auth.uid]))
+      );
+      
+      allow create: if isEmailVerified() && isValidId(vehicleId) && isValidVehicle(incoming());
+      
+      allow update: if isEmailVerified() && (
+        (existing().ownerId == request.auth.uid) || 
+        (existing().collaborators != null && request.auth.uid in existing().collaborators)
+      ) && (
+        // Prevent changing ownerId
+        incoming().ownerId == existing().ownerId
+      );
+
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+
+      // Logs Subcollection
+      match /logs/{logId} {
+        function isValidLog(data) {
+          return data.keys().hasAll(['id', 'vehicleId', 'type', 'date', 'mileage', 'cost']) &&
+                 data.id is string && data.vehicleId == vehicleId &&
+                 data.type is string && data.date is string &&
+                 data.mileage is string && data.cost is number;
+        }
+
+        allow read: if isSignedIn() && canAccessVehicle();
+        allow create: if isEmailVerified() && isValidId(logId) && canAccessVehicle() && isValidLog(incoming());
+        allow update: if isEmailVerified() && canAccessVehicle() && incoming().vehicleId == vehicleId;
+        allow delete: if isSignedIn() && canAccessVehicle();
+      }
+
+      // Fuel Subcollection
+      match /fuel/{fuelId} {
+        function isValidFuel(data) {
+          return data.keys().hasAll(['id', 'vehicleId', 'date', 'amount', 'cost', 'mileage']) &&
+                 data.id is string && data.vehicleId == vehicleId &&
+                 data.date is string && data.amount is number &&
+                 data.cost is number && data.mileage is string;
+        }
+
+        allow read: if isSignedIn() && canAccessVehicle();
+        allow create: if isEmailVerified() && isValidId(fuelId) && canAccessVehicle() && isValidFuel(incoming());
+        allow update: if isEmailVerified() && canAccessVehicle() && incoming().vehicleId == vehicleId;
+        allow delete: if isSignedIn() && canAccessVehicle();
+      }
+
+      // Diagnostics Subcollection
+      match /diagnostics/{diagId} {
+        function isValidDiag(data) {
+          return data.keys().hasAll(['id', 'vehicleId', 'date', 'description', 'severity']) &&
+                 data.id is string && data.vehicleId == vehicleId &&
+                 data.date is string && data.description is string &&
+                 data.severity in ['low', 'medium', 'high'];
+        }
+
+        allow read: if isSignedIn() && canAccessVehicle();
+        allow create: if isEmailVerified() && isValidId(diagId) && canAccessVehicle() && isValidDiag(incoming());
+        allow delete: if isSignedIn() && canAccessVehicle();
+      }
+    }
+  }
+}

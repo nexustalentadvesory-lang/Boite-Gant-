@@ -1,0 +1,5 @@
+{
+  "name": "Boite à Gants AI",
+  "description": "Assistant automobile intelligent : diagnostic OBD-II Bluetooth, analyse IA de panne par photo, suivi d'entretien collaboratif et rapports PDF.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}

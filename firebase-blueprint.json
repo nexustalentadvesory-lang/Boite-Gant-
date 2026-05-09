@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Represents a vehicle in the garage",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "make": { "type": "string" },
+        "model": { "type": "string" },
+        "year": { "type": "string" },
+        "mileage": { "type": "string" },
+        "imageUri": { "type": "string" },
+        "reminder": { "type": "string" },
+        "engineType": { "type": "string" },
+        "oilInterval": { "type": "number" },
+        "insuranceExpiry": { "type": "string" },
+        "ctExpiry": { "type": "string" },
+        "vignetteExpiry": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "collaborators": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "make", "model", "year", "mileage", "ownerId"]
+    },
+    "MaintenanceLog": {
+      "title": "MaintenanceLog",
+      "description": "An intervention log entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "type": { "type": "string" },
+        "date": { "type": "string" },
+        "mileage": { "type": "string" },
+        "cost": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "vehicleId", "type", "date", "mileage", "cost"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account info",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "FuelEntry": {
+      "title": "FuelEntry",
+      "description": "A fuel refill entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "date": { "type": "string" },
+        "amount": { "type": "number" },
+        "cost": { "type": "number" },
+        "pricePerUnit": { "type": "number" },
+        "mileage": { "type": "string" }
+      },
+      "required": ["id", "vehicleId", "date", "amount", "cost", "mileage"]
+    },
+    "DiagnosticEntry": {
+      "title": "DiagnosticEntry",
+      "description": "A vehicle diagnostic report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "date": { "type": "string" },
+        "codes": { "type": "array", "items": { "type": "string" } },
+        "description": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] }
+      },
+      "required": ["id", "vehicleId", "date", "description", "severity"]
+    }
+  },
+  "firestore": {
+    "/vehicles/{vehicleId}": {
+      "schema": "Vehicle",
+      "description": "Collection of vehicles"
+    },
+    "/vehicles/{vehicleId}/logs/{logId}": {
+      "schema": "MaintenanceLog",
+      "description": "Maintenance entries for a specific vehicle"
+    },
+    "/vehicles/{vehicleId}/fuel/{fuelId}": {
+      "schema": "FuelEntry",
+      "description": "Fuel entries for a specific vehicle"
+    },
+    "/vehicles/{vehicleId}/diagnostics/{diagId}": {
+      "schema": "DiagnosticEntry",
+      "description": "AI-generated diagnostic reports"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Public profile of users"
+    }
+  }
+}
