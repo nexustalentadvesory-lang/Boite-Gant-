@@ -1821,8 +1821,8 @@ function VehicleDetailView({
                  </div>
                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">Propriétaire (Vous)</span>
               </div>
-              {vehicle.collaborators?.map(c => (
-                <div key={c} className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-2 rounded-2xl">
+              {vehicle.collaborators?.map((c, idx) => (
+                <div key={`${c}-${idx}`} className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-2 rounded-2xl">
                    <div className="w-6 h-6 bg-slate-800 rounded-full flex items-center justify-center text-[10px] text-slate-400 font-bold">
                       ?
                    </div>
@@ -1978,8 +1978,8 @@ function VehicleDetailView({
                         )}
 
                         <div className="flex gap-2 mt-2">
-                          {diag.codes?.map((c: string) => (
-                            <span key={c} className="bg-slate-950 px-2 py-0.5 rounded-md text-slate-400 font-mono text-[9px] font-bold border border-slate-800">
+                          {diag.codes?.map((c: string, idx: number) => (
+                            <span key={`${c}-${idx}`} className="bg-slate-950 px-2 py-0.5 rounded-md text-slate-400 font-mono text-[9px] font-bold border border-slate-800">
                               {c}
                             </span>
                           ))}
@@ -3108,8 +3108,8 @@ function OBDBluetoothModal({ vehicle, onClose, onSave }: {
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {dtcs.map(c => (
-                    <span key={c} className="bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-2 rounded-xl font-mono text-sm font-black">
+                  {dtcs.map((c, idx) => (
+                    <span key={`${c}-${idx}`} className="bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-2 rounded-xl font-mono text-sm font-black">
                       {c}
                     </span>
                   ))}
@@ -3377,8 +3377,8 @@ function DiagnosticScannerModal({ vehicle, onClose, onSave }: {
                     <div>
                       <h4 className="text-white font-black text-lg">{result.description}</h4>
                       <div className="flex gap-2 mt-2">
-                        {result.codes?.map((c: string) => (
-                          <span key={c} className="bg-white/10 px-3 py-1 rounded-lg text-white font-mono text-[10px] font-bold">
+                        {result.codes?.map((c: string, idx: number) => (
+                          <span key={`${c}-${idx}`} className="bg-white/10 px-3 py-1 rounded-lg text-white font-mono text-[10px] font-bold">
                             {c}
                           </span>
                         ))}
